@@ -11,7 +11,7 @@ void witsshell();
 void batchmode(char *MainArgv);
 void storeCommand(char* CommandLine);
 void excecuteCommand(char *commands[]);
-void excecuteBatchCommand(char *commands[]);
+void excecutels(char* commands[]);
 int check_for_EOF();
 
 #define LENGTH 15
@@ -50,11 +50,11 @@ void witsshell(){
 		
 		getline(&buffer,&bufsize,stdin);
 		buffer[strcspn(buffer, "\n")] = 0;
-		
+	
 		storeCommand(buffer);
 
 		/*for(int i=0;i<ncom;i++){
-			printf("%s\n", commands[i]);
+			printf("command: %s\n", commands[i]);
 		}*/
 		excecuteCommand(commands);
 	}while(exitInt != 0);
@@ -63,6 +63,7 @@ void witsshell(){
 }
 
 void batchmode(char *MainArgv){
+	int i =0;
 	int fileAccess;
 	fileAccess = access(MainArgv, X_OK);
 	if(fileAccess==0){
@@ -74,7 +75,15 @@ void batchmode(char *MainArgv){
 		char* contents = NULL;
 		size_t len = 0;
 		while (getline(&contents, &len, readFile) != -1){
-			printf("%s", contents);
+			contents[strcspn(contents, "\n")] = 0;
+
+			exitInt = strcmp(contents,exitString); //if command is "exit" then exit gracefully
+			if(exitInt==0){
+				exit(0);
+			}
+			commands[0] = contents;
+			excecuteCommand(commands);
+			i++;
 		}
 
 		fclose(readFile);
@@ -107,18 +116,11 @@ void storeCommand(char* CommandLine){  //function to store commands into a globa
 }
 
 void excecuteCommand(char *commands[]){
-	char* newPath = currPath[0];
-	strcat(newPath, commands[0]);
-
-	int er = execv(newPath, commands);
-	if(er == -1){
-		char error_message[30] = "An error has occurred\n";
-		write(STDERR_FILENO, error_message, strlen(error_message));
+	if(!strcmp(commands[0], "ls")){
+		excecutels(commands);
+	}else if(strcmp(commands[0],exitString)){
+		exit(0);
 	}
-}
-
-void excecuteBatchCommand(char *commands[]){
-
 }
 
 int check_for_EOF(){  //checks for eof or CTRL-D
@@ -127,4 +129,12 @@ int check_for_EOF(){  //checks for eof or CTRL-D
     if (c == EOF) return 1;
     ungetc(c, stdin);
 	return 0;
+}
+
+void excecutels(char* commands[]){
+	int er = execv("/bin/ls", commands);
+	if(er == -1){
+		char error_message[30] = "An error has occurred\n";
+		write(STDERR_FILENO, error_message, strlen(error_message));
+	}
 }
