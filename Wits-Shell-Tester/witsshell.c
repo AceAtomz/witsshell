@@ -35,11 +35,10 @@ int main(int MainArgc, char *MainArgv[]){
 void witsshell(){
 	char *buffer = NULL;
     size_t bufsize = 32;
-    //size_t characters;
 	do {
 		printf("witsshell> ");
 
-		if(check_for_EOF()){
+		if(check_for_EOF()){  //if CTRL-D then exit gracefully
 			printf("^D\n");
 			exit(0);
 		}
@@ -47,7 +46,6 @@ void witsshell(){
 		getline(&buffer,&bufsize,stdin);
 		buffer[strcspn(buffer, "\n")] = 0;
 		
-		//getline(&buffer,&bufsize,stdin); //characters = getline(&buffer,&bufsize,stdin);
 		storeCommand(buffer);
 
 		for(int i=0;i<ncom;i++){
@@ -60,15 +58,14 @@ void witsshell(){
 
 void batchmode(char *MainArgv){
 	printf("Opening %s ", MainArgv);
-	//int temp = strstr(MainArgv[0], ".txt"); //!=NULL
 }
 
-void storeCommand(char* CommandLine){
-	//memset(commands, 0, LENGTH);
+void storeCommand(char* CommandLine){  //function to store commands into a global string array 
 	int i = 0;
 
-	char * token = strtok(CommandLine, " ");
-	exitInt = strcmp(token,exitString);
+	char * token = strtok(CommandLine, " "); //extract first word of commands
+
+	exitInt = strcmp(token,exitString); //if command is "exit" then exit gracefully
 	if(exitInt==0){
 		exit(0);
 	}
@@ -86,7 +83,7 @@ void excecuteCommand(char *MainArgv){
 	printf("Excecuting %s ", MainArgv);
 }
 
-int check_for_EOF(){
+int check_for_EOF(){  //checks for eof or CTRL-D
     if (feof(stdin)) return 1;
     int c = getc(stdin);
     if (c == EOF) return 1;
