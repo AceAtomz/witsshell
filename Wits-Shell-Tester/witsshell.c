@@ -10,23 +10,28 @@
 void witsshell();
 void batchmode(char *MainArgv);
 void storeCommand(char* CommandLine);
-void excecuteCommand(char *MainArgv);
+void excecuteCommand(char *commands[]);
+void excecuteBatchCommand(char *commands[]);
 int check_for_EOF();
 
 #define LENGTH 15
+#define PATH "/bin/"
 
-char *commands[LENGTH];
+char* currPath[LENGTH];
+char* commands[LENGTH];
 int ncom = 0;
 char* exitString = "exit";
 int exitInt = 1;
 
 int main(int MainArgc, char *MainArgv[]){
+	currPath[0] = PATH;
 	if(MainArgc == 1){
 		witsshell();
 	}else if(MainArgc == 2){
 		batchmode(MainArgv[1]);
 	}else{
-		printf("Invalid number of arguments. Must be either 0 (./witsshell) or 1 (./witsshell batch.txt)");
+		//printf("Invalid number of arguments. Must be either 0 (./witsshell) or 1 (./witsshell batch.txt)");
+		exit(1);
 	}
 
 	return(0);
@@ -39,7 +44,7 @@ void witsshell(){
 		printf("witsshell> ");
 
 		if(check_for_EOF()){  //if CTRL-D then exit gracefully
-			printf("^D\n");
+			//printf("^D\n");
 			exit(0);
 		}
 		
@@ -48,16 +53,27 @@ void witsshell(){
 		
 		storeCommand(buffer);
 
-		for(int i=0;i<ncom;i++){
+		/*for(int i=0;i<ncom;i++){
 			printf("%s\n", commands[i]);
-		}
+		}*/
+		excecuteCommand(commands);
 	}while(exitInt != 0);
 	free(buffer);
 	exit(0);
 }
 
 void batchmode(char *MainArgv){
-	printf("Opening %s ", MainArgv);
+	
+
+	int fileAccess;
+	fileAccess = access(MainArgv, X_OK);
+	if(fileAccess==0){
+		storeCommand(MainArgv);
+		excecuteBatchCommand(commands);
+	}else{
+		char error_message[60] = "An error has occurred while starting batch mode\n";
+		write(STDERR_FILENO, error_message, strlen(error_message));
+	}
 }
 
 void storeCommand(char* CommandLine){  //function to store commands into a global string array 
@@ -79,8 +95,25 @@ void storeCommand(char* CommandLine){  //function to store commands into a globa
 	ncom = i;
 }
 
-void excecuteCommand(char *MainArgv){
-	printf("Excecuting %s ", MainArgv);
+void excecuteCommand(char *commands[]){
+	char* newPath = currPath[0];
+	strcat(newPath, commands[0]);
+
+	int er = execv(newPath, commands);
+	if(er == -1){
+		char error_message[60] = "An error has occurred during interactive mode\n";
+		write(STDERR_FILENO, error_message, strlen(error_message));
+	}
+}
+
+void excecuteBatchCommand(char *commands[]){
+	char* arr[] = {NULL};
+	printf("%s",commands[0]);
+	int er = execv(commands[0], arr);
+	if(er == -1){
+		char error_message[50] = "An error has occurred during batch mode\n";
+		write(STDERR_FILENO, error_message, strlen(error_message));
+	}
 }
 
 int check_for_EOF(){  //checks for eof or CTRL-D
