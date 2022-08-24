@@ -63,15 +63,26 @@ void witsshell(){
 }
 
 void batchmode(char *MainArgv){
-	
-
 	int fileAccess;
 	fileAccess = access(MainArgv, X_OK);
 	if(fileAccess==0){
-		storeCommand(MainArgv);
-		excecuteBatchCommand(commands);
+		FILE* readFile = fopen(MainArgv, "r");
+		if(!readFile){
+			char error_message[30] = "An error has occurred\n";
+			write(STDERR_FILENO, error_message, strlen(error_message));
+		}
+		char* contents = NULL;
+		size_t len = 0;
+		while (getline(&contents, &len, readFile) != -1){
+			printf("%s", contents);
+		}
+
+		fclose(readFile);
+		free(contents);
+
+		exit(0);
 	}else{
-		char error_message[60] = "An error has occurred while starting batch mode\n";
+		char error_message[30] = "An error has occurred\n";
 		write(STDERR_FILENO, error_message, strlen(error_message));
 	}
 }
@@ -101,19 +112,13 @@ void excecuteCommand(char *commands[]){
 
 	int er = execv(newPath, commands);
 	if(er == -1){
-		char error_message[60] = "An error has occurred during interactive mode\n";
+		char error_message[30] = "An error has occurred\n";
 		write(STDERR_FILENO, error_message, strlen(error_message));
 	}
 }
 
 void excecuteBatchCommand(char *commands[]){
-	char* arr[] = {NULL};
-	printf("%s\n",commands[0]);
-	int er = execv(commands[0], arr);
-	if(er == -1){
-		char error_message[50] = "An error has occurred during batch mode\n";
-		write(STDERR_FILENO, error_message, strlen(error_message));
-	}
+
 }
 
 int check_for_EOF(){  //checks for eof or CTRL-D
