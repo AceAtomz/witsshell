@@ -108,7 +108,7 @@ void excecuteCommand(char *commands[]){
 
 void excecuteBatchCommand(char *commands[]){
 	char* arr[] = {NULL};
-	printf("%s",commands[0]);
+	printf("%s\n",commands[0]);
 	int er = execv(commands[0], arr);
 	if(er == -1){
 		char error_message[50] = "An error has occurred during batch mode\n";
