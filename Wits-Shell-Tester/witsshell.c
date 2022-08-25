@@ -67,20 +67,19 @@ void batchmode(char *MainArgv){
 		if(!readFile){
 			char error_message[30] = "An error has occurred\n";
 			write(STDERR_FILENO, error_message, strlen(error_message));
-		}
-		char* contents = NULL;
-		size_t len = 0;
-		while (getline(&contents, &len, readFile) != -1){
-			contents[strcspn(contents, "\n")] = 0;
-			storeCommand(contents);
-			excecuteCommand(commands);
-			i++;
-		}
+		}else{
+			char* contents = NULL;
+			size_t len = 0;
+			while (getline(&contents, &len, readFile) != -1){
+				contents[strcspn(contents, "\n")] = 0;
+				storeCommand(contents);
+				excecuteCommand(commands);
+				i++;
+			}
 
-		fclose(readFile);
-		free(contents);
-
-		exit(0);
+			fclose(readFile);
+			free(contents);
+		}
 	}else{
 		char error_message[30] = "An error has occurred\n";
 		write(STDERR_FILENO, error_message, strlen(error_message));
@@ -127,9 +126,17 @@ int check_for_EOF(){  //checks for eof or CTRL-D
 }
 
 void excecutels(char* commands[]){
-	int er = execv("/bin/ls", commands);
-	if(er == -1){
-		char error_message[30] = "An error has occurred\n";
-		write(STDERR_FILENO, error_message, strlen(error_message));
+	if(ncom>1){
+		int fileAccess;
+		fileAccess = access(commands[1], F_OK);
+
+		if(fileAccess!=0){
+			char error_message[30] = "An error has occurred\n";
+			write(STDERR_FILENO, error_message, strlen(error_message));
+		}else{
+			execv("/bin/ls", commands);
+		}
+	}else{
+		execv("/bin/ls", commands);
 	}
 }
