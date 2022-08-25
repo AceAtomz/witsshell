@@ -30,8 +30,8 @@ int main(int MainArgc, char *MainArgv[]){
 	}else if(MainArgc == 2){
 		batchmode(MainArgv[1]);
 	}else{
-		//printf("Invalid number of arguments. Must be either 0 (./witsshell) or 1 (./witsshell batch.txt)");
-		exit(1);
+		char error_message[30] = "An error has occurred\n";
+		write(STDERR_FILENO, error_message, strlen(error_message));
 	}
 
 	return(0);
@@ -52,20 +52,16 @@ void witsshell(){
 		buffer[strcspn(buffer, "\n")] = 0;
 	
 		storeCommand(buffer);
-
-		/*for(int i=0;i<ncom;i++){
-			printf("command: %s\n", commands[i]);
-		}*/
 		excecuteCommand(commands);
 	}while(exitInt != 0);
 	free(buffer);
-	exit(0);
 }
 
 void batchmode(char *MainArgv){
 	int i =0;
 	int fileAccess;
 	fileAccess = access(MainArgv, X_OK);
+
 	if(fileAccess==0){
 		FILE* readFile = fopen(MainArgv, "r");
 		if(!readFile){
@@ -76,12 +72,7 @@ void batchmode(char *MainArgv){
 		size_t len = 0;
 		while (getline(&contents, &len, readFile) != -1){
 			contents[strcspn(contents, "\n")] = 0;
-
-			exitInt = strcmp(contents,exitString); //if command is "exit" then exit gracefully
-			if(exitInt==0){
-				exit(0);
-			}
-			commands[0] = contents;
+			storeCommand(contents);
 			excecuteCommand(commands);
 			i++;
 		}
@@ -98,13 +89,11 @@ void batchmode(char *MainArgv){
 
 void storeCommand(char* CommandLine){  //function to store commands into a global string array 
 	int i = 0;
+	memset(commands, 0, sizeof(commands));
 
 	char * token = strtok(CommandLine, " "); //extract first word of commands
 
 	exitInt = strcmp(token,exitString); //if command is "exit" then exit gracefully
-	if(exitInt==0){
-		exit(0);
-	}
 
    	// loop through the string to extract all other tokens
    	while( token != NULL ) {
@@ -118,8 +107,14 @@ void storeCommand(char* CommandLine){  //function to store commands into a globa
 void excecuteCommand(char *commands[]){
 	if(!strcmp(commands[0], "ls")){
 		excecutels(commands);
-	}else if(strcmp(commands[0],exitString)){
-		exit(0);
+	}
+	if(!strcmp(commands[0],exitString)){
+		if(ncom==1){
+			exit(0);
+		}else{ 
+			char error_message[30] = "An error has occurred\n";
+			write(STDERR_FILENO, error_message, strlen(error_message));
+		}
 	}
 }
 
