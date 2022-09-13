@@ -40,7 +40,7 @@ int main(int MainArgc, char *MainArgv[]){
 void witsshell(){
 	char *buffer = NULL;
     size_t bufsize = 32;
-	do {
+	while(exitInt){
 		printf("witsshell> ");
 
 		if(check_for_EOF()){  //if CTRL-D then exit gracefully
@@ -53,7 +53,7 @@ void witsshell(){
 	
 		storeCommand(buffer);
 		excecuteCommand(commands);
-	}while(exitInt != 0);
+	}
 	free(buffer);
 }
 
@@ -115,6 +115,13 @@ void excecuteCommand(char *commands[]){
 			write(STDERR_FILENO, error_message, strlen(error_message));
 		}
 	}
+	if(!strcmp(commands[0], "echo")){
+		if(ncom!=1){
+			printf("%s\n", commands[1]);
+		}else{
+			printf("\n");
+		}
+	}
 }
 
 int check_for_EOF(){  //checks for eof or CTRL-D
@@ -136,7 +143,7 @@ void excecutels(char* commands[]){
 		}else{
 			execv("/bin/ls", commands);
 		}
-	}else{
+	}else{ //if(fork()==0) if you dont wanna close witsshell after ls
 		execv("/bin/ls", commands);
 	}
 }
