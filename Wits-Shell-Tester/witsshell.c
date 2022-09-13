@@ -143,7 +143,9 @@ void excecutels(char* commands[]){
 		fileAccess = access(commands[1], F_OK);
 
 		if(fileAccess!=0){
-			char error_message[30] = "An error has occurred\n";
+			char error_message[100] = "ls: cannot access '";
+			strcat(error_message, commands[1]);
+			strcat(error_message, "': No such file or directory\n");
 			write(STDERR_FILENO, error_message, strlen(error_message));
 		}else{
 			exec(commands);
