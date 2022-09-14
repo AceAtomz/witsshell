@@ -1,1 +1,1 @@
-tester/run-tests.sh: line 29:  3877 Segmentation fault      ./witsshell tests/15.in
+tester/run-tests.sh: line 29:  3423 Segmentation fault      ./witsshell tests/15.in

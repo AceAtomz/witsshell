@@ -21,7 +21,9 @@ int check_for_EOF();
 
 char* currPath[LENGTH];
 char* commands[LENGTH];
+char* allCommands[LENGTH];
 int ncom = 0;
+int nAllCom =0;
 char* exitString = "exit";
 int exitInt = 1;
 
@@ -62,6 +64,7 @@ void witsshell(){
 void batchmode(char *MainArgv){
 	int i =0;
 	int fileAccess;
+	char temp[50];
 	fileAccess = access(MainArgv, X_OK);
 
 	if(fileAccess==0){
@@ -74,13 +77,18 @@ void batchmode(char *MainArgv){
 			size_t len = 0;
 			while (getline(&contents, &len, readFile) != -1){
 				contents[strcspn(contents, "\n")] = 0;
-				storeCommand(contents);
-				excecuteCommand(commands);
+				allCommands[i] = strdup(contents);
 				i++;
 			}
+			nAllCom=i;
 
 			fclose(readFile);
 			free(contents);
+			printf("%s", temp);
+			for(int j=0;j<nAllCom;j++){
+				storeCommand(allCommands[j]);
+				excecuteCommand(commands);
+			}
 		}
 	}else{
 		char error_message[30] = "An error has occurred\n";
