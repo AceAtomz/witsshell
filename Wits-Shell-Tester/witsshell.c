@@ -10,7 +10,7 @@
 void witsshell();
 void batchmode(char *MainArgv);
 void storeCommand(char* CommandLine);
-void excecuteCommand(char *commands[]);
+void excecuteCommand(char *Allcommands[]);
 void exec(char* commands[]);
 void excecutels(char* commands[]);
 void excecutecd(char* commands[]);
@@ -23,9 +23,7 @@ char* currPath[LENGTH];
 char* commands[LENGTH];
 char* allCommands[LENGTH];
 int ncom = 0;
-int nAllCom =0;
-char* exitString = "exit";
-int exitInt = 1;
+int nAllCom = 0;
 
 int main(int MainArgc, char *MainArgv[]){
 	currPath[0] = PATH;
@@ -44,7 +42,7 @@ int main(int MainArgc, char *MainArgv[]){
 void witsshell(){
 	char *buffer = NULL;
     size_t bufsize = 32;
-	while(exitInt){
+	while(true){
 		printf("witsshell> ");
 
 		if(check_for_EOF()){  //if CTRL-D then exit gracefully
@@ -62,9 +60,8 @@ void witsshell(){
 }
 
 void batchmode(char *MainArgv){
-	int i =0;
+	int i = 0;
 	int fileAccess;
-	char temp[50];
 	fileAccess = access(MainArgv, X_OK);
 
 	if(fileAccess==0){
@@ -81,14 +78,13 @@ void batchmode(char *MainArgv){
 				i++;
 			}
 			nAllCom=i;
-
 			fclose(readFile);
 			free(contents);
-			printf("%s", temp);
-			for(int j=0;j<nAllCom;j++){
-				storeCommand(allCommands[j]);
-				excecuteCommand(commands);
-			}
+			excecuteCommand(allCommands);
+			// for(int j=0;j<nAllCom;j++){
+			// 	excecuteCommand(allCommands[j]);
+			// 	//printf("%s", commands[1]);
+			// }
 		}
 	}else{
 		char error_message[30] = "An error has occurred\n";
@@ -101,9 +97,7 @@ void storeCommand(char* CommandLine){  //function to store commands into a globa
 	memset(commands, 0, sizeof(commands));
 
 	char * token = strtok(CommandLine, " "); //extract first word of commands
-
-	exitInt = strcmp(token,exitString); //if command is "exit" then exit gracefully
-
+	
    	// loop through the string to extract all other tokens
    	while( token != NULL ) {
       	commands[i] = token;
@@ -113,27 +107,31 @@ void storeCommand(char* CommandLine){  //function to store commands into a globa
 	ncom = i;
 }
 
-void excecuteCommand(char *commands[]){
-	if(!strcmp(commands[0], "ls")){
+void excecuteCommand(char *Allcommands[]){
+	for(int i=0;i<nAllCom;i++){
+		storeCommand(Allcommands[i]);
+		
+		if(!strcmp(commands[0], "ls")){
 		excecutels(commands);
-	}
-	if(!strcmp(commands[0],exitString)){
-		if(ncom==1){
-			exit(0);
-		}else{ 
-			char error_message[30] = "An error has occurred\n";
-			write(STDERR_FILENO, error_message, strlen(error_message));
 		}
-	}
-	if(!strcmp(commands[0], "echo")){
-		if(ncom!=1){
-			printf("%s\n", commands[1]);
-		}else{
-			printf("\n");
+		if(!strcmp(commands[0],"exit")){
+			if(ncom==1){
+				exit(0);
+			}else{ 
+				char error_message[30] = "An error has occurred\n";
+				write(STDERR_FILENO, error_message, strlen(error_message));
+			}
 		}
-	}
-	if(!strcmp(commands[0], "cd")){
-		excecutecd(commands);
+		if(!strcmp(commands[0], "echo")){
+			if(ncom!=1){
+				printf("%s\n", commands[1]);
+			}else{
+				printf("\n");
+			}
+		}
+		if(!strcmp(commands[0], "cd")){
+			excecutecd(commands);
+		}
 	}
 }
 
