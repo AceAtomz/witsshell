@@ -28,6 +28,7 @@ char* allCommands[LENGTH];
 int ncom = 0;
 int nAllCom = 0;
 int nPaths = 0;
+int pathNum = 0;
 
 int main(int MainArgc, char *MainArgv[]){
 	currPath[0] = PATH;
@@ -38,9 +39,10 @@ int main(int MainArgc, char *MainArgv[]){
 	}else{
 		char error_message[30] = "An error has occurred\n";
 		write(STDERR_FILENO, error_message, strlen(error_message));
+		return 1;
 	}
 
-	return(0);
+	return 0;
 }
 
 void witsshell(){
@@ -156,6 +158,15 @@ int check_for_EOF(){  //checks for eof or CTRL-D
 
 void excecutels(char* commands[]){
 	if(ncom>1){
+		for(int i=0;i<ncom;i++){
+			if(!strcmp(commands[i], ">")){
+				if(i==ncom-1 || i<ncom-1){
+					char error_message[30] = "An error has occurred\n";
+					write(STDERR_FILENO, error_message, strlen(error_message));
+					return;
+				}
+			}
+		}
 		int fileAccess;
 		fileAccess = access(commands[1], F_OK);
 
@@ -218,19 +229,23 @@ void exec(char* commands[]){
 }
 
 void excecutePath(char* commands[]){
-	memset(currPath, 0, sizeof(currPath));
-	nPaths = 0;
-	for(int i=0;i<ncom-1;i++){
-		currPath[i] = commands[i+1];
-		nPaths++;
+	if(ncom==1){
+		memset(currPath, 0, sizeof(currPath));
+		nPaths = 0;
+	}else{
+		for(int i=0;i<ncom-1;i++){
+			currPath[nPaths+1] = commands[i+1];
+			nPaths++;
+		}
 	}
 }
 
 void excecuteSH(char* commands[]){
-	char* temp = commands[0];
+	char temp[50] = "";
+	strcat(temp, currPath[pathNum]);
+	strcat(temp, commands[0]);
 	commands[0] = "sh";
 	commands[1] = temp;
-	
 	exec(commands);
 }
 
@@ -242,7 +257,10 @@ bool haveAccess(char* command){
 		strcat(run, currPath[i]); //run = PATH = /bin/
 		strcat(run, command); //run = PATH + commands[0] ie. /bin/ls
 		int a = access(run, F_OK);
-		if(a==0) return true;
+		if(a==0){
+			pathNum = i;
+			return true;
+		} 
 		i++;
 	}
 	return false;
