@@ -27,6 +27,7 @@ char* commands[LENGTH];
 char* allCommands[LENGTH];
 int ncom = 0;
 int nAllCom = 0;
+int nPaths = 0;
 
 int main(int MainArgc, char *MainArgv[]){
 	currPath[0] = PATH;
@@ -194,6 +195,7 @@ void excecutecd(char* commands[]){
 
 void exec(char* commands[]){ 
 	//pid_t cpid;
+	int failExec = 0;
     if (fork()== 0){
 		int i=0;
 		while(currPath[i]!=0){
@@ -202,11 +204,12 @@ void exec(char* commands[]){
 			strcat(run, commands[0]); //run = PATH + commands[0] ie. /bin/ls
 			if(!access(run, F_OK))
 				execv(run, commands);	//runs command through execv
-			else{
-				char error_message[30] = "An error has occurred\n";
-				write(STDERR_FILENO, error_message, strlen(error_message));
-			}
+			else failExec++;
 			i++;
+		}
+		if(failExec==nPaths){
+			char error_message[30] = "An error has occurred\n";
+			write(STDERR_FILENO, error_message, strlen(error_message));
 		}
 		exit(0);           /* terminate child */
 	}else
@@ -216,12 +219,11 @@ void exec(char* commands[]){
 }
 
 void excecutePath(char* commands[]){
-	if(ncom==1){
-		memset(currPath, 0, sizeof(currPath));
-	}else{
-		for(int i=0;i<ncom-1;i++){
-			currPath[i] = commands[i+1];
-		}
+	memset(currPath, 0, sizeof(currPath));
+	nPaths =0;
+	for(int i=0;i<ncom-1;i++){
+		currPath[i] = commands[i+1];
+		nPaths++;
 	}
 }
 
@@ -236,12 +238,12 @@ void excecuteSH(char* commands[]){
 bool haveAccess(char* command){
 	int i=0;
 	while(currPath[i]!=0){
-		int a;
 		char run[50] = "";
 		strcat(run, currPath[i]); //run = PATH = /bin/
+		printf(" %s ", run);
 		strcat(run, command); //run = PATH + commands[0] ie. /bin/ls
-		printf("%s", run);
-		a = access(run, F_OK);
+		printf(" %s ", run);
+		int a = access(run, F_OK);
 		if(a==0) return true;
 		i++;
 	}
