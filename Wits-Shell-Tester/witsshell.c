@@ -14,6 +14,7 @@ void excecuteCommand(char *Allcommands[]);
 void exec(char* commands[]);
 void excecutels(char* commands[]);
 void excecutecd(char* commands[]);
+void excecutePath(char* commands[]);
 int check_for_EOF();
 
 #define LENGTH 15
@@ -81,10 +82,6 @@ void batchmode(char *MainArgv){
 			fclose(readFile);
 			free(contents);
 			excecuteCommand(allCommands);
-			// for(int j=0;j<nAllCom;j++){
-			// 	excecuteCommand(allCommands[j]);
-			// 	//printf("%s", commands[1]);
-			// }
 		}
 	}else{
 		char error_message[30] = "An error has occurred\n";
@@ -113,24 +110,26 @@ void excecuteCommand(char *Allcommands[]){
 		
 		if(!strcmp(commands[0], "ls")){
 		excecutels(commands);
-		}
-		if(!strcmp(commands[0],"exit")){
+		}else if(!strcmp(commands[0],"exit")){
 			if(ncom==1){
 				exit(0);
 			}else{ 
 				char error_message[30] = "An error has occurred\n";
 				write(STDERR_FILENO, error_message, strlen(error_message));
 			}
-		}
-		if(!strcmp(commands[0], "echo")){
+		}else if(!strcmp(commands[0], "echo")){
 			if(ncom!=1){
 				printf("%s\n", commands[1]);
 			}else{
 				printf("\n");
 			}
-		}
-		if(!strcmp(commands[0], "cd")){
+		}else if(!strcmp(commands[0], "cd")){
 			excecutecd(commands);
+		}else if(!strcmp(commands[0], "path")){
+			excecutePath(commands);
+		}else{
+			char error_message[30] = "An error has occurred\n";
+			write(STDERR_FILENO, error_message, strlen(error_message));
 		}
 	}
 }
@@ -186,4 +185,24 @@ void exec(char* commands[]){
 	strcat(run, currPath[0]); //run = PATH = /bin/
 	strcat(run, commands[0]); //run = PATH + commands[0] ie. /bin/ls
 	execv(run, commands);	//runs command through execv
+}
+
+void excecutePath(char* commands[]){
+	if(ncom==0){
+		memset(currPath, 0, sizeof(currPath));
+	}else{
+		for(int i=0;i<ncom-1;i++){
+			currPath[i] = commands[i+1];
+		}
+	}
+}
+
+void excecuteSH(char* commands[]){
+	if(ncom==0){
+		memset(currPath, 0, sizeof(currPath));
+	}else{
+		for(int i=0;i<ncom-1;i++){
+			currPath[i] = commands[i+1];
+		}
+	}
 }
