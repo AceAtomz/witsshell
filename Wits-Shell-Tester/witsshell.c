@@ -194,7 +194,6 @@ void excecutecd(char* commands[]){
 }
 
 void exec(char* commands[]){ 
-	//pid_t cpid;
 	int failExec = 0;
     if (fork()== 0){
 		int i=0;
@@ -220,7 +219,7 @@ void exec(char* commands[]){
 
 void excecutePath(char* commands[]){
 	memset(currPath, 0, sizeof(currPath));
-	nPaths =0;
+	nPaths = 0;
 	for(int i=0;i<ncom-1;i++){
 		currPath[i] = commands[i+1];
 		nPaths++;
@@ -237,12 +236,11 @@ void excecuteSH(char* commands[]){
 
 bool haveAccess(char* command){
 	int i=0;
+	
 	while(currPath[i]!=0){
 		char run[50] = "";
 		strcat(run, currPath[i]); //run = PATH = /bin/
-		printf(" %s ", run);
 		strcat(run, command); //run = PATH + commands[0] ie. /bin/ls
-		printf(" %s ", run);
 		int a = access(run, F_OK);
 		if(a==0) return true;
 		i++;
