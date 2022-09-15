@@ -198,11 +198,7 @@ void excecutePath(char* commands[]){
 }
 
 void excecuteSH(char* commands[]){
-	if(ncom==0){
-		memset(currPath, 0, sizeof(currPath));
-	}else{
-		for(int i=0;i<ncom-1;i++){
-			currPath[i] = commands[i+1];
-		}
+	for(int i=0;i<sizeof(currPath);i++){ //TODO: move this loop to exec 
+		exec(); 
 	}
 }
