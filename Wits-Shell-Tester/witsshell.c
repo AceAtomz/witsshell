@@ -18,6 +18,7 @@ void excecutePath(char* commands[]);
 void excecuteSH(char* commands[]);
 int check_for_EOF();
 bool haveAccess(char* command);
+//char *trimwhitespace(char *str);
 
 #define LENGTH 15
 #define PATH "/bin/"
@@ -121,6 +122,7 @@ void storeCommand(char* CommandLine){  //function to store commands into a globa
 
 void excecuteCommand(char *Allcommands[]){
 	for(int i=0;i<nAllCom;i++){
+		//Allcommands[i] = trimwhitespace(Allcommands[i]);
 		storeCommand(Allcommands[i]);
 		
 		if(!strcmp(commands[0], "ls")){
@@ -277,3 +279,23 @@ bool haveAccess(char* command){
 	}
 	return false;
 }
+
+// char *trimwhitespace(char *str)
+// {
+//   char *end;
+
+//   // Trim leading space
+//   while(isspace((unsigned char)*str)) str++;
+
+//   if(*str == 0)  // All spaces?
+//     return str;
+
+//   // Trim trailing space
+//   end = str + strlen(str) - 1;
+//   while(end > str && isspace((unsigned char)*end)) end--;
+
+//   // Write new null terminator character
+//   end[1] = '\0';
+
+//   return str;
+// }
