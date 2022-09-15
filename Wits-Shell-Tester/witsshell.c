@@ -35,7 +35,15 @@ int main(int MainArgc, char *MainArgv[]){
 	if(MainArgc == 1){
 		witsshell();
 	}else if(MainArgc == 2){
-		batchmode(MainArgv[1]);
+		int fileAccess = access(MainArgv[1], X_OK);
+		if(fileAccess==0){
+			batchmode(MainArgv[1]);
+		}else{
+			char error_message[30] = "An error has occurred\n";
+			write(STDERR_FILENO, error_message, strlen(error_message));
+			return 1;
+		}
+		
 	}else{
 		char error_message[30] = "An error has occurred\n";
 		write(STDERR_FILENO, error_message, strlen(error_message));
@@ -73,30 +81,26 @@ void witsshell(){
 
 void batchmode(char *MainArgv){
 	int i = 0;
-	int fileAccess;
-	fileAccess = access(MainArgv, X_OK);
 
-	if(fileAccess==0){
-		FILE* readFile = fopen(MainArgv, "r");
-		if(!readFile){
-			char error_message[30] = "An error has occurred\n";
-			write(STDERR_FILENO, error_message, strlen(error_message));
-		}else{
-			char* contents = NULL;
-			size_t len = 0;
-			while (getline(&contents, &len, readFile) != -1){
-				contents[strcspn(contents, "\n")] = 0;
-				allCommands[i] = strdup(contents);
-				i++;
-			}
-			nAllCom=i;
-			fclose(readFile);
-			free(contents);
-			excecuteCommand(allCommands);
-		}
-	}else{
+	FILE* readFile = fopen(MainArgv, "r");
+	if(!readFile){
 		char error_message[30] = "An error has occurred\n";
 		write(STDERR_FILENO, error_message, strlen(error_message));
+	}else{
+		char* contents = NULL;
+		size_t len = 0;
+		while (getline(&contents, &len, readFile) != -1){
+			if(!strcspn(contents, "\n")){
+				continue;
+			}
+			contents[strcspn(contents, "\n")] = 0;
+			allCommands[i] = strdup(contents);
+			i++;
+		}
+		nAllCom=i;
+		fclose(readFile);
+		free(contents);
+		excecuteCommand(allCommands);
 	}
 }
 
@@ -130,7 +134,13 @@ void excecuteCommand(char *Allcommands[]){
 			}
 		}else if(!strcmp(commands[0], "echo")){
 			if(ncom!=1){
-				printf("%s\n", commands[1]);
+				char temp[255] ="";
+				for(int j=1;j<ncom-1;j++){
+					strcat(temp, commands[j]);
+					strcat(temp, " ");
+				}
+				strcat(temp, commands[ncom-1]);
+				printf("%s\n", temp);
 			}else{
 				printf("\n");
 			}
@@ -140,6 +150,8 @@ void excecuteCommand(char *Allcommands[]){
 			excecutePath(commands);
 		}else if(haveAccess(commands[0])){
 			excecuteSH(commands);
+		}else if(!strcmp(commands[0], "&")){
+			continue;
 		}
 		else{
 			char error_message[30] = "An error has occurred\n";
